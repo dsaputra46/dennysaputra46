@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Peta Titik Insinerator Samarinda</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+*{box-sizing:border-box}
+html,body,#map{height:100%;margin:0}
+body{font-family:Arial,Helvetica,sans-serif}
+#map{width:100%}
+.head,.list{position:absolute;z-index:1000;background:#fff;border-radius:8px;box-shadow:0 2px 12px rgba(0,0,0,.2)}
+.head{top:15px;left:55px;padding:14px 17px}
+.head h1{font-size:20px;margin:0 0 5px}
+.head p{font-size:12px;color:#666;margin:0}
+.list{right:15px;top:15px;width:330px;max-height:78vh;overflow:auto}
+.lt{font-weight:700;padding:13px;border-bottom:1px solid #ddd}
+.item{padding:10px 13px;border-bottom:1px solid #eee;cursor:pointer;font-size:13px}
+.item:hover{background:#f5f5f5}
+.item b{display:block;margin-bottom:3px}
+.item small{display:block;color:#666;line-height:1.35}
+.coord{font:11px monospace;color:#666}
+.g{display:inline-block;margin-top:6px;background:#222;color:#fff;padding:5px 7px;border-radius:4px;text-decoration:none;font-size:11px}
+.mk{width:34px;height:34px;border-radius:50%;background:#d71920;color:#fff;border:3px solid #fff;box-shadow:0 2px 7px rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;font-weight:700}
+.pop{font-size:12px;line-height:1.45}
+.pop b{font-size:16px;display:block;margin-bottom:5px}
+.src{position:absolute;z-index:1000;bottom:4px;left:5px;background:rgba(255,255,255,.9);padding:3px 6px;font-size:10px;color:#555}
+@media(max-width:700px){
+.head{left:50px;right:10px}
+.list{left:10px;right:10px;top:auto;bottom:12px;width:auto;max-height:38vh}
+.item{display:inline-block;width:50%;vertical-align:top}
+}
+</style>
+</head>
+<body>
+<div class="head">
+<h1>Peta Titik Insinerator Samarinda</h1>
+<p>9 lokasi pembangunan • Data final</p>
+</div>
+<div class="list"><div class="lt">Lokasi Pembangunan</div><div id="items"></div></div>
+<div id="map"></div>
+<div class="src">Basemap: Esri World Imagery</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const pts=[{"id": 1, "name": "Insinerator P. Suryanata", "street": "Jl. P. Suryanata", "kelurahan": "Bukit Pinang", "kecamatan": "Samarinda Ulu", "lat": -0.4569722222, "lon": 117.1144444444}, {"id": 2, "name": "Insinerator Polder Air Hitam", "street": "Kawasan Folder Air Hitam", "kelurahan": "Air Hitam", "kecamatan": "Samarinda Ulu", "lat": -0.46725, "lon": 117.1345833333}, {"id": 3, "name": "Insinerator Ring Road 2", "street": "Jl. Nusyirwan Ismail (Ring Road 2)", "kelurahan": "Lok Bahu", "kecamatan": "Sungai Kunjang", "lat": -0.4830555556, "lon": 117.0970833333}, {"id": 4, "name": "Insinerator Tani Aman", "street": "Jl. H.M. Riffadin", "kelurahan": "Tani Aman", "kecamatan": "Loa Janan Ilir", "lat": -0.58625, "lon": 117.1094722222}, {"id": 5, "name": "Insinerator Baqa", "street": "Jl. Sultan Hasanuddin", "kelurahan": "Baqa", "kecamatan": "Samarinda Seberang", "lat": -0.5130833333, "lon": 117.1409166667}, {"id": 6, "name": "Insinerator Stadion Palaran", "street": "Jl. Stadion Palaran", "kelurahan": "Simpang Pasir", "kecamatan": "Palaran", "lat": -0.57925, "lon": 117.1309166667}, {"id": 7, "name": "Insinerator Handil Bakti", "street": "Jl. Karya Bakti", "kelurahan": "Handil Bakti", "kecamatan": "Palaran", "lat": -0.59575, "lon": 117.1409166667}, {"id": 8, "name": "Insinerator Wanyi", "street": "Jl. Wanyi", "kelurahan": "Sempaja Utara", "kecamatan": "Samarinda Utara", "lat": -0.4209444444, "lon": 117.1633055556}, {"id": 9, "name": "Insinerator Lempake", "street": "Jl. Lempake Jaya Gg. Istiqomah", "kelurahan": "Lempake", "kecamatan": "Samarinda Utara", "lat": -0.4372222222, "lon": 117.1900833333}];
+const map=L.map('map');
+
+L.tileLayer(
+'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+{maxZoom:19,attribution:'Tiles &copy; Esri'}
+).addTo(map);
+
+const bounds=[];
+pts.forEach(p=>{
+ const icon=L.divIcon({
+  className:'',
+  html:'<div class="mk">'+p.id+'</div>',
+  iconSize:[34,34],iconAnchor:[17,17],popupAnchor:[0,-17]
+ });
+ const m=L.marker([p.lat,p.lon],{icon}).addTo(map);
+ const g='https://www.google.com/maps/search/?api=1&query='+p.lat+','+p.lon;
+
+ m.bindPopup(
+ '<div class="pop"><b>'+p.name+'</b>'+
+ '<strong>Jalan:</strong> '+p.street+'<br>'+
+ '<strong>Kelurahan:</strong> '+p.kelurahan+'<br>'+
+ '<strong>Kecamatan:</strong> '+p.kecamatan+'<br>'+
+ '<strong>Koordinat:</strong> '+p.lat+', '+p.lon+'<br>'+
+ '<a class="g" target="_blank" rel="noopener" href="'+g+'">Buka di Google Maps</a></div>'
+ );
+
+ bounds.push([p.lat,p.lon]);
+
+ const el=document.createElement('div');
+ el.className='item';
+ el.innerHTML='<b>'+p.name+'</b>'+
+ '<small>'+p.street+'<br>'+p.kelurahan+' • '+p.kecamatan+'</small>'+
+ '<span class="coord">'+p.lat+', '+p.lon+'</span><br>'+
+ '<a class="g" target="_blank" rel="noopener" href="'+g+'">Google Maps</a>';
+
+ el.addEventListener('click',e=>{
+  if(e.target.tagName==='A') return;
+  map.setView([p.lat,p.lon],16);
+  m.openPopup();
+ });
+
+ document.getElementById('items').appendChild(el);
+});
+
+map.fitBounds(bounds,{padding:[70,70]});
+</script>
+</body>
+</html>
