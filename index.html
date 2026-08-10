@@ -2,94 +2,303 @@
 <html lang="id">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Peta Titik Insinerator Samarinda</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <style>
-*{box-sizing:border-box}
 html,body,#map{height:100%;margin:0}
-body{font-family:Arial,Helvetica,sans-serif}
-#map{width:100%}
-.head,.list{position:absolute;z-index:1000;background:#fff;border-radius:8px;box-shadow:0 2px 12px rgba(0,0,0,.2)}
-.head{top:15px;left:55px;padding:14px 17px}
-.head h1{font-size:20px;margin:0 0 5px}
-.head p{font-size:12px;color:#666;margin:0}
-.list{right:15px;top:15px;width:330px;max-height:78vh;overflow:auto}
-.lt{font-weight:700;padding:13px;border-bottom:1px solid #ddd}
-.item{padding:10px 13px;border-bottom:1px solid #eee;cursor:pointer;font-size:13px}
-.item:hover{background:#f5f5f5}
-.item b{display:block;margin-bottom:3px}
-.item small{display:block;color:#666;line-height:1.35}
-.coord{font:11px monospace;color:#666}
-.g{display:inline-block;margin-top:6px;background:#222;color:#fff;padding:5px 7px;border-radius:4px;text-decoration:none;font-size:11px}
-.mk{width:34px;height:34px;border-radius:50%;background:#d71920;color:#fff;border:3px solid #fff;box-shadow:0 2px 7px rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;font-weight:700}
-.pop{font-size:12px;line-height:1.45}
-.pop b{font-size:16px;display:block;margin-bottom:5px}
-.src{position:absolute;z-index:1000;bottom:4px;left:5px;background:rgba(255,255,255,.9);padding:3px 6px;font-size:10px;color:#555}
+body{font-family:Arial,Helvetica,sans-serif;background:#eee}
+#map{position:fixed;inset:0;z-index:1}
+
+/* PANEL KIRI */
+.sidebar{
+ position:fixed;z-index:2000;left:0;top:0;bottom:0;width:370px;
+ background:#fff;box-shadow:2px 0 12px rgba(0,0,0,.18);
+ display:flex;flex-direction:column;overflow:hidden
+}
+.head{background:#092b49;color:#fff;padding:20px 22px 18px}
+.head h1{margin:0 0 8px;font-size:25px;line-height:1.08}
+.head p{margin:0;font-size:13px;opacity:.9}
+.hint{padding:13px 17px;background:#fff9e9;border-bottom:1px solid #ddd;font-size:12px;line-height:1.45}
+.list{overflow:auto;flex:1;padding:6px}
+.item{
+ width:100%;border:0;border-bottom:1px solid #e5e5e5;background:#fff;
+ padding:10px 9px;display:flex;align-items:center;gap:10px;
+ text-align:left;cursor:pointer
+}
+.item:hover{background:#f5f7f9}
+.item-num{
+ flex:0 0 31px;width:31px;height:31px;border-radius:50%;
+ color:#fff;display:flex;align-items:center;justify-content:center;
+ font-weight:700;font-size:14px
+}
+.red{background:#d71920}.orange{background:#f28e2b}.green{background:#2e8b57}
+.item-body{flex:1;min-width:0}
+.item-name{font-size:14px;font-weight:700;margin-bottom:3px}
+.item-meta{font-size:11px;line-height:1.35;color:#555}
+.distance{flex:0 0 auto;color:#fff;border-radius:4px;padding:5px 7px;font-size:11px;font-weight:700}
+.chev{font-size:19px;color:#777}
+.note{padding:9px 12px;border-top:1px solid #ddd;font-size:10px;color:#666;line-height:1.35}
+
+/* LEGENDA */
+.legend{
+ position:fixed;z-index:2000;right:14px;top:14px;width:280px;
+ background:rgba(255,255,255,.96);border-radius:9px;padding:14px;
+ box-shadow:0 2px 12px rgba(0,0,0,.2)
+}
+.legend h3{margin:0 0 9px;font-size:15px}
+.legend-row{
+ display:flex;align-items:center;gap:9px;width:100%;
+ border:0;background:transparent;padding:7px 2px;text-align:left;
+ font-size:11px;cursor:pointer
+}
+.legend-row:hover{background:#f5f5f5}
+.lg-dot{width:23px;height:23px;border-radius:50%;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700}
+.count{margin-left:auto;color:#fff;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-weight:700}
+.rule{border-top:1px solid #ddd;margin:8px 0}
+.radius{width:21px;height:21px;border:2px solid #555;border-radius:50%;display:inline-block}
+.showall{margin-top:6px;background:#222;color:#fff;border:0;border-radius:5px;padding:7px 9px;font-size:10px;cursor:pointer}
+
+/* DETAIL */
+.detail{
+ position:fixed;z-index:2000;right:14px;bottom:14px;width:330px;
+ background:rgba(255,255,255,.97);border-radius:9px;padding:15px;
+ box-shadow:0 2px 12px rgba(0,0,0,.2);font-size:12px;line-height:1.45
+}
+.detail h2{margin:0 0 9px;font-size:18px}
+.close{position:absolute;right:9px;top:6px;border:0;background:none;font-size:21px;color:#777;cursor:pointer}
+.big-distance{font-size:24px;font-weight:700;margin:5px 0}
+.tag{display:inline-block;color:#fff;padding:4px 7px;border-radius:4px;font-size:10px;font-weight:700}
+.gmaps{display:inline-block;margin-top:10px;background:#222;color:#fff;padding:7px 9px;border-radius:4px;text-decoration:none}
+
+/* MARKER: INI YANG MEMBUAT NOMOR TAMPIL DI BADAN PETA */
+.map-number-marker{
+ width:38px;height:38px;border-radius:50%;
+ border:3px solid #fff;
+ box-shadow:0 2px 7px rgba(0,0,0,.55);
+ display:flex;align-items:center;justify-content:center;
+ color:#fff;font-size:15px;font-weight:800;
+ font-family:Arial,Helvetica,sans-serif;
+}
+.map-number-marker.red{background:#d71920}
+.map-number-marker.orange{background:#f28e2b}
+.map-number-marker.green{background:#2e8b57}
+
+/* label nomor selalu punya ukuran tetap */
+.marker-wrap{
+ background:transparent!important;border:0!important;
+ width:44px!important;height:44px!important
+}
+
 @media(max-width:700px){
-.head{left:50px;right:10px}
-.list{left:10px;right:10px;top:auto;bottom:12px;width:auto;max-height:38vh}
-.item{display:inline-block;width:50%;vertical-align:top}
+ .sidebar{width:310px}.head h1{font-size:20px}
+ .legend{right:8px;top:8px;width:210px}
+ .detail{left:8px;right:8px;bottom:8px;width:auto}
 }
 </style>
 </head>
 <body>
-<div class="head">
-<h1>Peta Titik Insinerator Samarinda</h1>
-<p>9 lokasi pembangunan • Data final</p>
-</div>
-<div class="list"><div class="lt">Lokasi Pembangunan</div><div id="items"></div></div>
+
 <div id="map"></div>
-<div class="src">Basemap: Esri World Imagery</div>
+
+<aside class="sidebar">
+ <div class="head">
+  <h1>9 Lokasi Pembangunan<br>Insinerator Samarinda</h1>
+  <p>Data final • Radius analisis 100 meter</p>
+ </div>
+ <div class="hint"><b>Klik nama lokasi</b> untuk langsung menuju titik bernomor di peta dan melihat informasi detail.</div>
+ <div class="list" id="list"></div>
+ <div class="note">* Jarak terhadap bangunan/rumah terpetakan terdekat. Data bangunan bersumber dari OpenStreetMap.</div>
+</aside>
+
+<section class="legend">
+ <h3>Legenda <span style="font-weight:normal;font-size:10px">(klik untuk filter)</span></h3>
+ <button class="legend-row" data-cat="red"><span class="lg-dot red">1</span><span>Sangat dekat (≤50 m)</span><span id="countRed" class="count red">0</span></button>
+ <button class="legend-row" data-cat="orange"><span class="lg-dot orange">1</span><span>Dekat (&gt;50–100 m)</span><span id="countOrange" class="count orange">0</span></button>
+ <button class="legend-row" data-cat="green"><span class="lg-dot green">1</span><span>Tidak ditemukan ≤100 m</span><span id="countGreen" class="count green">0</span></button>
+ <div class="rule"></div>
+ <div style="display:flex;align-items:center;gap:8px;font-size:11px"><span class="radius"></span><span>Radius analisis: 100 meter</span></div>
+ <button class="showall" id="showAll">Tampilkan semua titik</button>
+</section>
+
+<section class="detail" id="detail" hidden>
+ <button class="close" id="close">×</button>
+ <h2 id="dName"></h2>
+ <div id="dMeta"></div>
+ <div class="rule"></div>
+ <div>Bangunan/rumah terpetakan terdekat</div>
+ <div class="big-distance" id="dDistance"></div>
+ <span class="tag" id="dTag"></span>
+ <div style="margin-top:9px">Radius analisis: 100 meter</div>
+ <a class="gmaps" id="dMaps" target="_blank" rel="noopener">Buka di Google Maps ↗</a>
+</section>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-const pts=[{"id": 1, "name": "Insinerator P. Suryanata", "street": "Jl. P. Suryanata", "kelurahan": "Bukit Pinang", "kecamatan": "Samarinda Ulu", "lat": -0.4569722222, "lon": 117.1144444444}, {"id": 2, "name": "Insinerator Polder Air Hitam", "street": "Kawasan Folder Air Hitam", "kelurahan": "Air Hitam", "kecamatan": "Samarinda Ulu", "lat": -0.46725, "lon": 117.1345833333}, {"id": 3, "name": "Insinerator Ring Road 2", "street": "Jl. Nusyirwan Ismail (Ring Road 2)", "kelurahan": "Lok Bahu", "kecamatan": "Sungai Kunjang", "lat": -0.4830555556, "lon": 117.0970833333}, {"id": 4, "name": "Insinerator Tani Aman", "street": "Jl. H.M. Riffadin", "kelurahan": "Tani Aman", "kecamatan": "Loa Janan Ilir", "lat": -0.58625, "lon": 117.1094722222}, {"id": 5, "name": "Insinerator Baqa", "street": "Jl. Sultan Hasanuddin", "kelurahan": "Baqa", "kecamatan": "Samarinda Seberang", "lat": -0.5130833333, "lon": 117.1409166667}, {"id": 6, "name": "Insinerator Stadion Palaran", "street": "Jl. Stadion Palaran", "kelurahan": "Simpang Pasir", "kecamatan": "Palaran", "lat": -0.57925, "lon": 117.1309166667}, {"id": 7, "name": "Insinerator Handil Bakti", "street": "Jl. Karya Bakti", "kelurahan": "Handil Bakti", "kecamatan": "Palaran", "lat": -0.59575, "lon": 117.1409166667}, {"id": 8, "name": "Insinerator Wanyi", "street": "Jl. Wanyi", "kelurahan": "Sempaja Utara", "kecamatan": "Samarinda Utara", "lat": -0.4209444444, "lon": 117.1633055556}, {"id": 9, "name": "Insinerator Lempake", "street": "Jl. Lempake Jaya Gg. Istiqomah", "kelurahan": "Lempake", "kecamatan": "Samarinda Utara", "lat": -0.4372222222, "lon": 117.1900833333}];
-const map=L.map('map');
+const points = [{"id": 1, "name": "P. Suryanata", "lat": -0.4569722222, "lon": 117.1144444444, "nearest_m": 12.8, "nearest_name": null, "category": "red", "label": "Bangunan/rumah terpetakan terdekat: ±12.8 m"}, {"id": 2, "name": "Polder Air Hitam", "lat": -0.46725, "lon": 117.1345833333, "nearest_m": 20.3, "nearest_name": null, "category": "red", "label": "Bangunan/rumah terpetakan terdekat: ±20.3 m"}, {"id": 3, "name": "Ring Road 2", "lat": -0.4830555556, "lon": 117.0970833333, "nearest_m": 30.2, "nearest_name": null, "category": "red", "label": "Bangunan/rumah terpetakan terdekat: ±30.2 m"}, {"id": 4, "name": "Tani Aman", "lat": -0.58625, "lon": 117.1094722222, "nearest_m": 27.8, "nearest_name": "Kantor Kelurahan Tani Aman", "category": "red", "label": "Bangunan/rumah terpetakan terdekat: ±27.8 m"}, {"id": 5, "name": "Baqa", "lat": -0.5130833333, "lon": 117.1409166667, "nearest_m": 2.5, "nearest_name": null, "category": "red", "label": "Bangunan/rumah terpetakan terdekat: ±2.5 m"}, {"id": 6, "name": "Stadion Palaran", "lat": -0.57925, "lon": 117.1309166667, "nearest_m": null, "nearest_name": null, "category": "green", "label": "Tidak ditemukan bangunan terpetakan dalam radius 100 m"}, {"id": 7, "name": "Handil Bakti", "lat": -0.59575, "lon": 117.1409166667, "nearest_m": null, "nearest_name": null, "category": "green", "label": "Tidak ditemukan bangunan terpetakan dalam radius 100 m"}, {"id": 8, "name": "Wanyi", "lat": -0.4209444444, "lon": 117.1633055556, "nearest_m": 43.4, "nearest_name": null, "category": "red", "label": "Bangunan/rumah terpetakan terdekat: ±43.4 m"}, {"id": 9, "name": "Lempake", "lat": -0.4372222222, "lon": 117.1900833333, "nearest_m": 15.8, "nearest_name": null, "category": "red", "label": "Bangunan/rumah terpetakan terdekat: ±15.8 m"}];
 
-L.tileLayer(
-'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-{maxZoom:19,attribution:'Tiles &copy; Esri'}
-).addTo(map);
-
-const bounds=[];
-pts.forEach(p=>{
- const icon=L.divIcon({
-  className:'',
-  html:'<div class="mk">'+p.id+'</div>',
-  iconSize:[34,34],iconAnchor:[17,17],popupAnchor:[0,-17]
- });
- const m=L.marker([p.lat,p.lon],{icon}).addTo(map);
- const g='https://www.google.com/maps/search/?api=1&query='+p.lat+','+p.lon;
-
- m.bindPopup(
- '<div class="pop"><b>'+p.name+'</b>'+
- '<strong>Jalan:</strong> '+p.street+'<br>'+
- '<strong>Kelurahan:</strong> '+p.kelurahan+'<br>'+
- '<strong>Kecamatan:</strong> '+p.kecamatan+'<br>'+
- '<strong>Koordinat:</strong> '+p.lat+', '+p.lon+'<br>'+
- '<a class="g" target="_blank" rel="noopener" href="'+g+'">Buka di Google Maps</a></div>'
- );
-
- bounds.push([p.lat,p.lon]);
-
- const el=document.createElement('div');
- el.className='item';
- el.innerHTML='<b>'+p.name+'</b>'+
- '<small>'+p.street+'<br>'+p.kelurahan+' • '+p.kecamatan+'</small>'+
- '<span class="coord">'+p.lat+', '+p.lon+'</span><br>'+
- '<a class="g" target="_blank" rel="noopener" href="'+g+'">Google Maps</a>';
-
- el.addEventListener('click',e=>{
-  if(e.target.tagName==='A') return;
-  map.setView([p.lat,p.lon],16);
-  m.openPopup();
- });
-
- document.getElementById('items').appendChild(el);
+const map = L.map('map', {
+  zoomControl:true,
+  attributionControl:true
 });
 
-map.fitBounds(bounds,{padding:[70,70]});
+/* Pane khusus marker: marker selalu berada di atas radius dan polygon */
+map.createPane('numberMarkerPane');
+map.getPane('numberMarkerPane').style.zIndex = 1000;
+
+L.tileLayer(
+ 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+ {maxZoom:19, attribution:'Tiles &copy; Esri'}
+).addTo(map);
+
+const active = {red:true, orange:true, green:true};
+const refs = [];
+const bounds = [];
+
+function color(cat){
+ return cat==='red' ? '#d71920' : cat==='orange' ? '#f28e2b' : '#2e8b57';
+}
+function label(cat){
+ return cat==='red' ? 'Sangat dekat (≤50 m)' :
+        cat==='orange' ? 'Dekat (>50–100 m)' :
+        'Tidak ditemukan ≤100 m';
+}
+
+function numberIcon(p){
+ /* Marker bernomor dibuat langsung sebagai HTML Leaflet */
+ return L.divIcon({
+   className:'marker-wrap',
+   html:'<div class="map-number-marker '+p.category+'">'+p.id+'</div>',
+   iconSize:[44,44],
+   iconAnchor:[22,22],
+   popupAnchor:[0,-25]
+ });
+}
+
+function detail(p){
+ document.getElementById('dName').textContent=p.id+'. '+p.name+(p.id===3?' (dua unit mesin)':'');
+ document.getElementById('dMeta').innerHTML=
+  (p.jalan?'<b>Jalan:</b> '+p.jalan+'<br>':'')+
+  (p.kelurahan?'<b>Kelurahan:</b> '+p.kelurahan+'<br>':'')+
+  (p.kecamatan?'<b>Kecamatan:</b> '+p.kecamatan+'<br>':'')+
+  '<b>Koordinat:</b> '+p.lat.toFixed(6)+', '+p.lon.toFixed(6);
+
+ const dist=p.nearest_m===null?'>100 m':'±'+p.nearest_m+' m';
+ document.getElementById('dDistance').textContent=dist;
+ document.getElementById('dDistance').style.color=color(p.category);
+ document.getElementById('dTag').textContent=label(p.category);
+ document.getElementById('dTag').style.background=color(p.category);
+ document.getElementById('dMaps').href=
+   'https://www.google.com/maps/search/?api=1&query='+p.lat+','+p.lon;
+ document.getElementById('detail').hidden=false;
+}
+
+function apply(){
+ refs.forEach(r=>{
+   if(active[r.p.category]){
+     if(!map.hasLayer(r.marker)) r.marker.addTo(map);
+     if(!map.hasLayer(r.circle)) r.circle.addTo(map);
+   }else{
+     if(map.hasLayer(r.marker)) map.removeLayer(r.marker);
+     if(map.hasLayer(r.circle)) map.removeLayer(r.circle);
+   }
+ });
+ document.querySelectorAll('.item').forEach(el=>{
+   el.style.display=active[el.dataset.cat]?'flex':'none';
+ });
+}
+
+points.forEach(p=>{
+ const marker=L.marker([p.lat,p.lon],{
+   icon:numberIcon(p),
+   pane:'numberMarkerPane',
+   zIndexOffset:2000,
+   keyboard:true
+ }).addTo(map);
+
+ const circle=L.circle([p.lat,p.lon],{
+   radius:100,
+   color:color(p.category),
+   weight:2,
+   fillOpacity:.04,
+   interactive:false
+ }).addTo(map);
+
+ marker.bindTooltip(p.id+'. '+p.name,{
+   direction:'top',
+   offset:[0,-22],
+   opacity:.95
+ });
+
+ marker.bindPopup(
+  '<b>'+p.id+'. '+p.name+(p.id===3?' (dua unit mesin)':'')+'</b><br>'+
+  (p.jalan||'')+'<br>'+
+  (p.kelurahan||'')+', '+(p.kecamatan||'')+
+  '<br><br>'+
+  (p.nearest_m===null
+    ? 'Tidak ditemukan bangunan terpetakan dalam radius 100 m'
+    : 'Bangunan/rumah terpetakan terdekat: <b>±'+p.nearest_m+' m</b>')+
+  '<br><small>Radius analisis: 100 meter</small><br>'+
+  '<a target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query='+p.lat+','+p.lon+'">Buka di Google Maps</a>'
+ );
+
+ marker.on('click',()=>detail(p));
+
+ refs.push({p:p,marker:marker,circle:circle});
+ bounds.push([p.lat,p.lon]);
+
+ const item=document.createElement('button');
+ item.type='button';
+ item.className='item';
+ item.dataset.cat=p.category;
+ item.innerHTML=
+   '<span class="item-num '+p.category+'">'+p.id+'</span>'+
+   '<span class="item-body">'+
+     '<span class="item-name">'+p.name+(p.id===3?' <span style="font-weight:700;color:#d71920">(dua unit mesin)</span>':'')+'</span>'+
+     '<span class="item-meta">'+(p.jalan||'')+'<br>'+(p.kelurahan||'')+', '+(p.kecamatan||'')+'</span>'+
+   '</span>'+
+   '<span class="distance '+p.category+'">'+(p.nearest_m===null?'>100 m':p.nearest_m+' m')+'</span>'+
+   '<span class="chev">›</span>';
+
+ item.addEventListener('click',()=>{
+   active[p.category]=true;
+   document.querySelector('.legend-row[data-cat="'+p.category+'"]').style.opacity='1';
+   apply();
+   map.flyTo([p.lat,p.lon],16,{duration:.8});
+   setTimeout(()=>{
+     marker.openPopup();
+     detail(p);
+   },850);
+ });
+ document.getElementById('list').appendChild(item);
+});
+
+document.getElementById('countRed').textContent=points.filter(p=>p.category==='red').length;
+document.getElementById('countOrange').textContent=points.filter(p=>p.category==='orange').length;
+document.getElementById('countGreen').textContent=points.filter(p=>p.category==='green').length;
+
+document.querySelectorAll('.legend-row').forEach(btn=>{
+ btn.addEventListener('click',()=>{
+   const c=btn.dataset.cat;
+   active[c]=!active[c];
+   btn.style.opacity=active[c]?'1':'.35';
+   apply();
+ });
+});
+
+document.getElementById('showAll').addEventListener('click',()=>{
+ active.red=active.orange=active.green=true;
+ document.querySelectorAll('.legend-row').forEach(x=>x.style.opacity='1');
+ apply();
+ map.fitBounds(bounds,{paddingTopLeft:[390,30],paddingBottomRight:[30,30]});
+});
+
+document.getElementById('close').addEventListener('click',()=>{
+ document.getElementById('detail').hidden=true;
+});
+
+/* Fit awal memberi ruang untuk panel kiri sehingga titik tidak tersembunyi */
+map.fitBounds(bounds,{paddingTopLeft:[390,30],paddingBottomRight:[30,30]});
 </script>
 </body>
 </html>
