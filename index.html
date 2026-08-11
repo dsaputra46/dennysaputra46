@@ -91,15 +91,82 @@ body{font-family:Arial,Helvetica,sans-serif;background:#eee}
 }
 
 @media(max-width:700px){
- .sidebar{width:310px}.head h1{font-size:20px}
- .legend{right:8px;top:8px;width:210px}
- .detail{left:8px;right:8px;bottom:8px;width:auto}
+  html,body,#map{height:100%;min-height:100%;overflow:hidden}
+  #map{position:fixed;inset:0}
+
+  /* Saat pertama dibuka: daftar ringkas di bawah. */
+  .sidebar{
+    left:8px;right:8px;top:auto;bottom:8px;
+    width:auto;height:auto;max-height:42vh;
+    border-radius:14px;
+    box-shadow:0 2px 18px rgba(0,0,0,.28);
+  }
+  .head{padding:12px 15px 10px}
+  .head h1{font-size:18px;line-height:1.08;margin:0 0 4px}
+  .head p{font-size:10px}
+  .hint{padding:8px 12px;font-size:10px}
+
+  .list{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:0;
+    overflow:auto;
+    max-height:24vh;
+    padding:2px;
+  }
+  .item{min-height:58px;padding:7px 6px;gap:6px}
+  .item-num{flex:0 0 27px;width:27px;height:27px;font-size:12px}
+  .item-name{font-size:11px;margin-bottom:2px}
+  .item-meta{font-size:8.5px;line-height:1.2}
+  .distance{font-size:9px;padding:4px 5px}
+  .chev{font-size:15px}
+  .note{padding:6px 9px;font-size:8px}
+
+  /* Legenda ringkas. Disembunyikan setelah sebuah lokasi dipilih. */
+  .legend{
+    left:8px;right:auto;top:8px;width:205px;
+    padding:9px;border-radius:10px;
+  }
+  .legend h3{font-size:12px;margin-bottom:5px}
+  .legend-row{font-size:9px;padding:4px 2px;gap:5px}
+  .lg-dot{width:19px;height:19px;font-size:10px}
+  .count{width:19px;height:19px;font-size:10px}
+  .rule{margin:5px 0}
+  .radius{width:18px;height:18px}
+  .showall{margin-top:4px;padding:5px 7px;font-size:9px}
+
+  /* Detail kartu tidak dipakai saat memilih lokasi di mobile;
+     informasi utama muncul sebagai popup Leaflet di marker. */
+  .detail{
+    left:8px;right:8px;bottom:8px;width:auto;
+    max-height:35vh;overflow:auto;padding:12px;border-radius:12px;
+  }
+
+  /* Marker nomor dibuat besar dan mudah disentuh. */
+  .marker-wrap{
+    width:50px!important;height:50px!important;
+  }
+  .map-number-marker{
+    width:42px;height:42px;
+    border-width:3px;
+    font-size:16px;
+  }
+
+  /* Tombol kecil untuk membuka kembali daftar setelah ditutup. */
+  #mobileListButton{
+    position:fixed;z-index:2100;left:10px;bottom:10px;
+    display:none;
+    border:0;border-radius:22px;background:#fff;color:#222;
+    box-shadow:0 2px 10px rgba(0,0,0,.25);
+    padding:9px 13px;font-size:12px;font-weight:700;
+  }
 }
 </style>
 </head>
 <body>
 
 <div id="map"></div>
+<button id="mobileListButton" type="button">☰ 9 lokasi</button>
 
 <aside class="sidebar">
  <div class="head">
@@ -208,6 +275,22 @@ function apply(){
  });
 }
 
+
+function closeMobileOverlays(){
+  if(window.innerWidth <= 700){
+    document.querySelector('.sidebar').style.display='none';
+    document.querySelector('.legend').style.display='none';
+    document.getElementById('detail').hidden=true;
+    document.getElementById('mobileListButton').style.display='block';
+  }
+}
+
+function openMobileList(){
+  document.querySelector('.sidebar').style.display='';
+  document.querySelector('.legend').style.display='';
+  document.getElementById('mobileListButton').style.display='none';
+}
+
 points.forEach(p=>{
  const marker=L.marker([p.lat,p.lon],{
    icon:numberIcon(p),
@@ -242,7 +325,14 @@ points.forEach(p=>{
   '<a target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query='+p.lat+','+p.lon+'">Buka di Google Maps</a>'
  );
 
- marker.on('click',()=>detail(p));
+ marker.on('click',()=>{
+   closeMobileOverlays();
+   detail(p);
+   if(window.innerWidth <= 700){
+     // Detail card is deliberately hidden on mobile; popup is the sole detail UI.
+     document.getElementById('detail').hidden=true;
+   }
+ });
 
  refs.push({p:p,marker:marker,circle:circle});
  bounds.push([p.lat,p.lon]);
@@ -264,11 +354,21 @@ points.forEach(p=>{
    active[p.category]=true;
    document.querySelector('.legend-row[data-cat="'+p.category+'"]').style.opacity='1';
    apply();
-   map.flyTo([p.lat,p.lon],16,{duration:.8});
-   setTimeout(()=>{
-     marker.openPopup();
-     detail(p);
-   },850);
+
+   if(window.innerWidth <= 700){
+     closeMobileOverlays();
+     map.flyTo([p.lat,p.lon],16,{duration:.65});
+     setTimeout(()=>{
+       marker.openPopup();
+       document.getElementById('detail').hidden=true;
+     },700);
+   }else{
+     map.flyTo([p.lat,p.lon],16,{duration:.8});
+     setTimeout(()=>{
+       marker.openPopup();
+       detail(p);
+     },850);
+   }
  });
  document.getElementById('list').appendChild(item);
 });
@@ -290,12 +390,27 @@ document.getElementById('showAll').addEventListener('click',()=>{
  active.red=active.orange=active.green=true;
  document.querySelectorAll('.legend-row').forEach(x=>x.style.opacity='1');
  apply();
- map.fitBounds(bounds,{paddingTopLeft:[390,30],paddingBottomRight:[30,30]});
+ if(window.innerWidth <= 700){
+  map.fitBounds(bounds,{padding:[45,45]});
+}else{
+  map.fitBounds(bounds,{paddingTopLeft:[390,30],paddingBottomRight:[30,30]});
+}
 });
 
 document.getElementById('close').addEventListener('click',()=>{
  document.getElementById('detail').hidden=true;
 });
+
+document.getElementById('mobileListButton').addEventListener('click',()=>{
+ openMobileList();
+});
+
+map.on('popupclose',()=>{
+ if(window.innerWidth <= 700){
+   document.getElementById('mobileListButton').style.display='block';
+ }
+});
+
 
 /* Fit awal memberi ruang untuk panel kiri sehingga titik tidak tersembunyi */
 map.fitBounds(bounds,{paddingTopLeft:[390,30],paddingBottomRight:[30,30]});
